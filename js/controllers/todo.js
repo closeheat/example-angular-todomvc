@@ -4,9 +4,13 @@
  * - exposes the model to the template and provides event handlers
  */
 
-app.controller('TodoController', ['$scope', '$location', 'todoStorage', 'filterFilter',
-  function TodoController($scope, $location, todoStorage, filterFilter) {
-    var todos = $scope.todos = todoStorage.get();
+app.controller('TodoController', ['$scope', '$location', 'todoStorage', 'filterFilter', '$firebaseArray',
+  function TodoController($scope, $location, todoStorage, filterFilter, $firebaseArray) {
+    var url = 'https://fides.firebaseio.com/todos';
+    var fireRef = new Firebase(url);
+
+    // Bind the todos to the firebase provider.
+    var todos = $scope.todos = $firebaseArray(fireRef);
 
     $scope.newTodo = '';
     $scope.editedTodo = null;
@@ -36,47 +40,31 @@ app.controller('TodoController', ['$scope', '$location', 'todoStorage', 'filterF
       if (!newTodo.length) {
         return;
       }
-
-      todos.push({
+      $scope.todos.$add({
         title: newTodo,
         completed: false
       });
-
       $scope.newTodo = '';
     };
 
 
     $scope.editTodo = function (todo) {
-      $scope.editedTodo = todo;
     };
 
 
     $scope.doneEditing = function (todo) {
-      $scope.editedTodo = null;
-      todo.title = todo.title.trim();
-
-      if (!todo.title) {
-        $scope.removeTodo(todo);
-      }
     };
 
 
     $scope.removeTodo = function (todo) {
-      todos.splice(todos.indexOf(todo), 1);
     };
 
 
     $scope.clearDoneTodos = function () {
-      $scope.todos = todos = todos.filter(function (val) {
-        return !val.completed;
-      });
     };
 
 
     $scope.markAll = function (done) {
-      todos.forEach(function (todo) {
-        todo.completed = done;
-      });
     };
   }
 ]);
